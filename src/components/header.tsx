@@ -8,8 +8,8 @@ export default function Header() {
   const pathname = usePathname();
 
   const navLinks = [
-    { href: '/', label: 'Create', icon: PenSquare },
-    { href: '/shoutouts', label: 'Feed', icon: LayoutGrid },
+    { href: '/', label: 'Feed', icon: LayoutGrid },
+    { href: '/create', label: 'Create', icon: PenSquare },
   ];
 
   return (
