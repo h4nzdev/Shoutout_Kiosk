@@ -104,7 +104,7 @@ export default function ShoutoutDisplay({ shoutouts, initialized }: ShoutoutDisp
   const currentFrame = frames.find((f) => f.id === currentShoutout?.frame);
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-center items-center binary-rain px-4 md:px-12 overflow-hidden">
+    <div className="relative min-h-screen w-full flex flex-col justify-start items-center binary-rain px-4 md:px-12 pt-8 sm:pt-12 overflow-hidden">
       {sortedShoutouts.length > 1 && (
         <>
           <button onClick={handlePrev} className="absolute left-4 md:left-16 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/20 text-white/50 hover:bg-primary hover:text-white transition-colors">
@@ -126,7 +126,7 @@ export default function ShoutoutDisplay({ shoutouts, initialized }: ShoutoutDisp
             className="w-full flex items-center justify-center"
         >
             <div className="flex-1 max-w-4xl">
-                <div className="flex flex-col items-center mb-6">
+                <div className="flex flex-col items-center mb-4">
                     <h4 className="text-primary text-sm font-bold leading-normal tracking-[0.2em] px-4 py-2 text-center uppercase">Currently Streaming</h4>
                     <div className="h-1 w-24 bg-primary rounded-full blur-[1px]"></div>
                 </div>
