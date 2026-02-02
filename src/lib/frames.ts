@@ -4,16 +4,16 @@ export const frames: ShoutoutFrame[] = [
   {
     id: 'heart',
     name: 'Heart',
-    className: 'frame-heart',
+    className: 'circuit-heart-frame',
   },
   {
     id: 'code',
     name: 'Code',
-    className: 'frame-code',
+    className: 'circuit-heart-frame',
   },
   {
     id: 'circuit',
     name: 'Circuit',
-    className: 'frame-circuit',
+    className: 'circuit-heart-frame',
   },
 ];

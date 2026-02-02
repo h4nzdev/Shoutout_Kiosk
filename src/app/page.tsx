@@ -6,10 +6,8 @@ export default function Home() {
   const { shoutouts, initialized } = useShoutouts();
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <main className="flex-grow flex items-center justify-center">
-        <ShoutoutDisplay shoutouts={shoutouts} initialized={initialized} />
-      </main>
-    </div>
+    <main>
+      <ShoutoutDisplay shoutouts={shoutouts} initialized={initialized} />
+    </main>
   );
 }
