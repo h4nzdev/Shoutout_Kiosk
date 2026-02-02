@@ -30,7 +30,7 @@ export default function ShoutoutCard({ shoutout, frame, onDelete, showActions = 
   };
 
   return (
-    <Card className={cn('overflow-hidden animate-enter', frame?.className)}>
+    <Card className={cn('overflow-hidden', frame?.className)}>
       <CardContent className="p-4">
         <div className="flex flex-col gap-4">
           {shoutout.image && (
