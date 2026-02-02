@@ -14,7 +14,7 @@ type ShoutoutDisplayProps = {
 const MainShoutoutCard = ({ shoutout, frame }: { shoutout: Shoutout; frame: ShoutoutFrame | undefined }) => {
   const imageUrl = shoutout.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuCZCAL9woq7nJGc8C4QG3Td0rcexod38wbfCj8bpe_X1w-P52NufLP5z0DzS2WqoKJBpYgnJWvYGoSf6d3jwqAIhT5MRnILvF1YHRJO3N1eN-TyNY4jgLE8awVBX7PuRiDNFsiHjhSa_hU1VzVIx6nqGrIPpjIG1WwoBRJ4BEn0cmPuvb02SArHWfZ9nuurDWUGJABPLs7MFnT5bVR0chL5BzNMhV-oI0hM1-QuSjIgraV3glFeHZAlxa4zyV8h3H0oUkhVTxKWWX_x";
   return (
-    <div className={cn(frame?.className, "bg-black/40 backdrop-blur-md rounded-xl p-8 transition-all duration-700")}>
+    <div className={cn(frame?.className, "bg-card/80 backdrop-blur-md rounded-xl p-8 transition-all duration-700")}>
       <div className="flex flex-col md:flex-row gap-8 items-center">
         <div 
           className="w-full md:w-1/2 aspect-square bg-center bg-no-repeat bg-cover rounded-lg border-2 border-primary/30"
@@ -25,14 +25,14 @@ const MainShoutoutCard = ({ shoutout, frame }: { shoutout: Shoutout; frame: Shou
         <div className="w-full md:w-1/2 flex flex-col gap-6">
           <div className="space-y-1">
             <p className="text-primary/70 font-mono text-sm uppercase tracking-tighter">&lt;Sender&gt;</p>
-            <p className="text-white text-2xl font-bold font-mono">{shoutout.sender}</p>
+            <p className="text-foreground text-2xl font-bold font-mono">{shoutout.sender}</p>
           </div>
           <div className="space-y-1">
             <p className="text-primary/70 font-mono text-sm uppercase tracking-tighter">&lt;Recipient&gt;</p>
-            <p className="text-white text-3xl font-bold font-mono text-primary">To: {shoutout.recipient}</p>
+            <p className="text-primary text-3xl font-bold font-mono">To: {shoutout.recipient}</p>
           </div>
           <div className="mt-4 p-4 border-l-4 border-primary bg-primary/10">
-            <p className="text-white text-3xl font-mono leading-snug italic">
+            <p className="text-foreground text-3xl font-mono leading-snug italic">
               "{shoutout.message}"
             </p>
           </div>
@@ -94,7 +94,7 @@ export default function ShoutoutDisplay({ shoutouts, initialized }: ShoutoutDisp
         <div className="flex flex-col items-center justify-center text-center font-mono">
           <span className="material-symbols-outlined text-primary/50 !text-7xl mb-6">portable_wifi_off</span>
           <h3 className="text-2xl font-semibold font-display">Awaiting Transmissions...</h3>
-          <p className="text-white/60 mt-2 text-lg">Create a shoutout to get the stream started!</p>
+          <p className="text-muted-foreground mt-2 text-lg">Create a shoutout to get the stream started!</p>
         </div>
       </div>
     );
@@ -104,13 +104,13 @@ export default function ShoutoutDisplay({ shoutouts, initialized }: ShoutoutDisp
   const currentFrame = frames.find((f) => f.id === currentShoutout?.frame);
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-start items-center binary-rain px-4 md:px-12 sm:pt-8 overflow-hidden">
+    <div className="relative min-h-screen w-full flex flex-col justify-start items-center binary-rain px-4 md:px-12 pt-8 sm:pt-12 overflow-hidden">
       {sortedShoutouts.length > 1 && (
         <>
-          <button onClick={handlePrev} className="absolute left-4 md:left-16 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/20 text-white/50 hover:bg-primary hover:text-white transition-colors">
+          <button onClick={handlePrev} className="absolute left-4 md:left-16 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-card/50 text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
             <ChevronLeft className="w-8 h-8" />
           </button>
-          <button onClick={handleNext} className="absolute right-4 md:right-16 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/20 text-white/50 hover:bg-primary hover:text-white transition-colors">
+          <button onClick={handleNext} className="absolute right-4 md:right-16 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-card/50 text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
             <ChevronRight className="w-8 h-8" />
           </button>
         </>

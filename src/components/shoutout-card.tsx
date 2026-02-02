@@ -45,7 +45,7 @@ export default function ShoutoutCard({ shoutout, frame, onDelete, showActions = 
               />
             </div>
           )}
-          <p className={cn("text-white/90 leading-relaxed font-body", isFeatured ? "text-xl text-center" : "")}>{shoutout.message}</p>
+          <p className={cn("text-card-foreground/90 leading-relaxed font-body", isFeatured ? "text-xl text-center" : "")}>{shoutout.message}</p>
           <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-t-primary/20">
             <Clock className="w-3 h-3" />
             <span>{timeAgo(shoutout.createdAt)}</span>
