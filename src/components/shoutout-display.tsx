@@ -115,9 +115,9 @@ export default function ShoutoutDisplay({ shoutouts, initialized }: ShoutoutDisp
       <AnimatePresence mode="wait">
         <motion.div 
             key={currentIndex}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
             className="w-full flex items-center justify-center gap-8 md:gap-16"
         >
