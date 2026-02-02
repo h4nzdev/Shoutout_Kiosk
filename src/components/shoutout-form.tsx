@@ -17,6 +17,8 @@ import { Heart, Code, CircuitBoard, Send, ImagePlus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
+  sender: z.string().min(1, 'Sender name is required.'),
+  recipient: z.string().min(1, 'Recipient name is required.'),
   message: z.string().min(1, 'Message cannot be empty.').max(500, 'Message is too long.'),
   frame: z.string().min(1, 'Please select a frame.'),
 });
@@ -40,6 +42,8 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      sender: '',
+      recipient: '',
       message: '',
       frame: 'heart',
     },
@@ -76,6 +80,8 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
     setIsSubmitting(true);
     try {
       onAddShoutout({
+        sender: values.sender,
+        recipient: values.recipient,
         message: values.message,
         image: imageBase64,
         frame: values.frame,
@@ -107,6 +113,35 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="sender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Your Name / Alias</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Anonymous Binary Lover" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="recipient"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>To</FormLabel>
+                    <FormControl>
+                      <Input placeholder="My fellow Coder" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
             <FormField
               control={form.control}
               name="message"

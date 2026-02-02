@@ -1,19 +1,12 @@
 'use client';
 import * as React from 'react';
 import { Shoutout } from '@/lib/types';
-import { frames } from '@/lib/frames';
-import ShoutoutCard from './shoutout-card';
 import { Skeleton } from './ui/skeleton';
-import { HeartCrack } from 'lucide-react';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
-} from '@/components/ui/carousel';
-import { cn } from '@/lib/utils';
+import { Button } from './ui/button';
+import { ArrowRight, HeartCrack } from 'lucide-react';
+import ShoutoutStreamCard from './shoutout-stream-card';
+import ShoutoutNextCard from './shoutout-next-card';
+import { AnimatePresence, motion } from 'framer-motion';
 
 type ShoutoutDisplayProps = {
   shoutouts: Shoutout[];
@@ -21,93 +14,75 @@ type ShoutoutDisplayProps = {
 };
 
 export default function ShoutoutDisplay({ shoutouts, initialized }: ShoutoutDisplayProps) {
+  const [currentIndex, setCurrentIndex] = React.useState(0);
   const sortedShoutouts = shoutouts.slice().sort((a, b) => b.createdAt - a.createdAt);
-  const [api, setApi] = React.useState<CarouselApi>();
-  const [current, setCurrent] = React.useState(0);
-  const [count, setCount] = React.useState(0);
+
+  const handleNext = React.useCallback(() => {
+    if (sortedShoutouts.length > 0) {
+        setCurrentIndex((prev) => (prev + 1) % sortedShoutouts.length);
+    }
+  }, [sortedShoutouts.length]);
 
   React.useEffect(() => {
-    if (!api) {
-      return;
+    if (sortedShoutouts.length > 1) {
+      const timer = setInterval(() => {
+        handleNext();
+      }, 15000); // Auto-advance every 15 seconds
+      return () => clearInterval(timer);
     }
-
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap());
-
-    const onSelect = () => {
-      setCurrent(api.selectedScrollSnap());
-    };
-
-    const onReinit = () => {
-      setCount(api.scrollSnapList().length);
-      setCurrent(api.selectedScrollSnap());
-    }
-
-    api.on('select', onSelect);
-    api.on('reInit', onReinit);
-
-    return () => {
-      api.off('select', onSelect);
-      api.off('reInit', onReinit);
-    }
-  }, [api]);
+  }, [sortedShoutouts.length, handleNext]);
 
   if (!initialized) {
+    return <Skeleton className="w-full max-w-4xl h-[400px] bg-white/10" />;
+  }
+  
+  if (sortedShoutouts.length === 0) {
     return (
-      <div className="w-full max-w-lg mx-auto">
-        <h2 className="text-2xl font-headline font-semibold mb-4 text-center">Live Feed</h2>
-        <Skeleton className="h-64 w-full" />
-      </div>
+        <div className="flex flex-col items-center justify-center text-center p-10 font-code">
+          <HeartCrack className="w-24 h-24 text-primary/50 mb-6" />
+          <h3 className="text-2xl font-semibold font-headline">Awaiting Transmissions...</h3>
+          <p className="text-muted-foreground mt-2 text-lg">Create a shoutout to get the stream started!</p>
+        </div>
     );
   }
+  
+  const currentShoutout = sortedShoutouts[currentIndex];
+  const nextShoutout = sortedShoutouts.length > 1 ? sortedShoutouts[(currentIndex + 1) % sortedShoutouts.length] : null;
 
   return (
-    <div className="w-full">
-      <h2 className="text-2xl font-headline font-semibold mb-8 text-center">Live Feed</h2>
-      {sortedShoutouts.length > 0 ? (
-        <div className="flex flex-col items-center gap-4">
-          <Carousel
-            setApi={setApi}
-            opts={{
-              align: 'center',
-              loop: sortedShoutouts.length > 1,
-            }}
-            className="w-full"
-          >
-            <CarouselContent>
-              {sortedShoutouts.map((shoutout, index) => {
-                const isActive = index === current;
-                const frame = frames.find((f) => f.id === shoutout.frame);
-                return (
-                  <CarouselItem key={shoutout.id} className="md:basis-1/2 lg:basis-1/3">
-                    <div className={cn("p-1 transition-all duration-300", isActive ? "scale-100" : "scale-75 opacity-50")}>
-                      <ShoutoutCard 
-                        shoutout={shoutout} 
-                        frame={frame}
-                        isFeatured={isActive}
-                      />
-                    </div>
-                  </CarouselItem>
-                );
-              })}
-            </CarouselContent>
-            {sortedShoutouts.length > 1 && (
-              <>
-                <CarouselPrevious />
-                <CarouselNext />
-              </>
-            )}
-          </Carousel>
-          <div className="py-2 text-center text-sm text-muted-foreground">
-            {count > 0 && `Shoutout ${current + 1} of ${count}`}
-          </div>
+    <div className="w-full h-full flex flex-col items-center justify-center relative font-code p-4">
+      <div className="absolute top-4 md:top-10 text-center">
+        <h2 className="text-primary uppercase tracking-[0.2em] text-sm">Currently Streaming</h2>
+        <div className="w-24 h-px bg-primary/50 mx-auto mt-2"></div>
+      </div>
+
+      <div className="w-full max-w-4xl my-auto">
+        <AnimatePresence mode="wait">
+            <motion.div
+                key={currentShoutout.id}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                transition={{ duration: 0.5 }}
+            >
+                <ShoutoutStreamCard shoutout={currentShoutout} />
+            </motion.div>
+        </AnimatePresence>
+      </div>
+      
+      {nextShoutout && (
+        <div className="absolute top-1/2 -translate-y-[60%] right-4 lg:right-10 xl:right-20 w-48 md:w-64 hidden md:block">
+           <h3 className="text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Up Next</h3>
+           <div className="opacity-50">
+             <ShoutoutNextCard shoutout={nextShoutout} />
+           </div>
         </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center text-center p-10 border-2 border-dashed rounded-lg max-w-lg mx-auto">
-          <HeartCrack className="w-16 h-16 text-muted-foreground mb-4" />
-          <h3 className="text-xl font-semibold font-headline">No Shoutouts Yet</h3>
-          <p className="text-muted-foreground mt-2">Be the first one to send a lovely message!</p>
-        </div>
+      )}
+
+      {sortedShoutouts.length > 1 && (
+         <Button onClick={handleNext} className="absolute bottom-6 right-6 md:bottom-10 md:right-10 rounded-md h-12 px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-wider text-sm">
+            Next Shout-Out <ArrowRight className="ml-2 h-5 w-5"/>
+         </Button>
       )}
     </div>
   );
