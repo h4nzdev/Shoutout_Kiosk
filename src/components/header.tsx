@@ -22,19 +22,19 @@ export default function Header() {
           </h1>
           <Code className="text-accent w-8 h-8" />
         </div>
-        <nav className="flex gap-2 p-1 bg-muted rounded-lg">
+        <nav className="flex gap-6">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
+                'flex items-center gap-2 text-md font-medium transition-colors',
                 pathname === link.href
-                  ? 'bg-background shadow text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:text-primary'
               )}
             >
-              <link.icon className="w-4 h-4" />
+              <link.icon className="w-5 h-5" />
               <span>{link.label}</span>
             </Link>
           ))}
