@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { Shoutout, ShoutoutFrame } from '@/lib/types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { frames } from '@/lib/frames';
 import { cn } from '@/lib/utils';
 
@@ -112,11 +112,13 @@ export default function ShoutoutDisplay({ shoutouts, initialized }: ShoutoutDisp
 
   return (
     <div className="relative min-h-screen w-full flex flex-col justify-center items-center binary-rain px-4 md:px-12">
+      <AnimatePresence mode="wait">
         <motion.div 
             key={currentIndex}
-            initial={{ opacity: 0.8, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
             className="w-full flex items-center justify-center gap-8 md:gap-16"
         >
             <div className="flex-1 max-w-4xl">
@@ -142,6 +144,7 @@ export default function ShoutoutDisplay({ shoutouts, initialized }: ShoutoutDisp
                 </div>
             )}
         </motion.div>
+      </AnimatePresence>
 
         {sortedShoutouts.length > 1 && (
             <div className="fixed bottom-12 right-12">
