@@ -13,8 +13,9 @@ import { frames } from '@/lib/frames';
 import { Shoutout } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
-import { Heart, Code, CircuitBoard, Send, ImagePlus, X } from 'lucide-react';
+import { Heart, Code, CircuitBoard, Send, ImagePlus, X, WandSparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { stylizeMessage } from '@/ai/flows/stylize-message-flow';
 
 const formSchema = z.object({
   sender: z.string().min(1, 'Sender name is required.'),
@@ -37,6 +38,7 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [aiLoading, setAiLoading] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -75,6 +77,41 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
     const fileInput = document.getElementById('shoutout-image') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   }
+
+  const handleStylize = async (style: 'poetic' | 'witty') => {
+    const currentMessage = form.getValues('message');
+    if (!currentMessage) {
+      toast({
+        title: 'Enter a message first!',
+        description: 'You need to write a message before the AI can stylize it.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setAiLoading(style);
+    try {
+      const result = await stylizeMessage({ message: currentMessage, style });
+      if (result?.stylizedMessage) {
+        form.setValue('message', result.stylizedMessage, { shouldValidate: true });
+        toast({
+            title: 'Message Stylized!',
+            description: `Your message has been made more ${style}.`,
+        });
+      } else {
+          throw new Error('No message returned');
+      }
+    } catch (error) {
+      console.error('Failed to stylize message:', error);
+      toast({
+        title: 'AI Error',
+        description: 'The AI failed to stylize your message. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setAiLoading(null);
+    }
+  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -151,6 +188,30 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
                   <FormControl>
                     <Textarea placeholder="Type your Valentine's message here..." {...field} />
                   </FormControl>
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleStylize('poetic')}
+                        disabled={!!aiLoading}
+                        className="text-xs"
+                    >
+                        {aiLoading === 'poetic' ? 'Stylizing...' : 'Make it Poetic'}
+                        <WandSparkles className="ml-2 h-3 w-3" />
+                    </Button>
+                    <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleStylize('witty')}
+                        disabled={!!aiLoading}
+                        className="text-xs"
+                    >
+                        {aiLoading === 'witty' ? 'Stylizing...' : 'Make it Witty'}
+                        <WandSparkles className="ml-2 h-3 w-3" />
+                    </Button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
