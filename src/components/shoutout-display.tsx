@@ -135,15 +135,23 @@ export default function ShoutoutDisplay({ shoutouts, initialized }: ShoutoutDisp
         </motion.div>
       </AnimatePresence>
         
-        <div className="fixed bottom-6 left-12">
-            <div className="flex items-center gap-4 text-primary/30 font-mono text-xs">
-                <span>COM_DEPT_TERMINAL</span>
-                <span className="h-1 w-1 rounded-full bg-primary/30"></span>
-                <span>ID: VALENTINE-2024-X</span>
-                <span className="h-1 w-1 rounded-full bg-primary/30"></span>
-                <span className="animate-pulse">_LISTENING_FOR_INPUT</span>
+      {sortedShoutouts.length > 0 && (
+        <div className="fixed bottom-6 inset-x-0 flex justify-center items-center">
+            <div className="px-4 py-1 rounded-full bg-card/50 text-foreground font-mono text-sm">
+                {currentIndex + 1} / {sortedShoutouts.length}
             </div>
         </div>
+      )}
+
+      <div className="fixed bottom-6 left-12 hidden md:flex">
+          <div className="flex items-center gap-4 text-primary/30 font-mono text-xs">
+              <span>COM_DEPT_TERMINAL</span>
+              <span className="h-1 w-1 rounded-full bg-primary/30"></span>
+              <span>ID: VALENTINE-2024-X</span>
+              <span className="h-1 w-1 rounded-full bg-primary/30"></span>
+              <span className="animate-pulse">_LISTENING_FOR_INPUT</span>
+          </div>
+      </div>
     </div>
   );
 }
