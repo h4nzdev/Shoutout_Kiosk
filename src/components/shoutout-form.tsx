@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { frames } from '@/lib/frames';
 import { Shoutout } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
+import Image from 'next/image'; // This is Next.js Image component
 import { Camera, Heart, Code, CircuitBoard, Send, X, WandSparkles, TestTube } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { stylizeMessage } from '@/ai/flows/stylize-message-flow';
@@ -38,7 +38,8 @@ const frameIcons: { [key: string]: React.ReactNode } = {
 // Preprocess image for better OCR results
 const preprocessImageForOCR = async (file: File): Promise<Blob> => {
   return new Promise((resolve, reject) => {
-    const img = new window.Image();
+    // Use browser's native Image constructor, not Next.js Image component
+    const img = new window.Image(); // Use window.Image
     img.onload = () => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -99,7 +100,8 @@ const preprocessImageForOCR = async (file: File): Promise<Blob> => {
 
 // Log image info for debugging
 const logImageInfo = (file: File) => {
-  const img = new window.Image();
+  // Use browser's native Image constructor
+  const img = new window.Image(); // Changed from just Image()
   img.onload = function () {
     console.log('OCR Image Analysis:');
     console.log('- Dimensions:', img.width, 'x', img.height);
@@ -252,13 +254,12 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
           if (debugMode) {
             console.log('Tesseract:', m);
           }
+          
           if (m.status === 'recognizing text') {
             const progress = (m.progress * 100).toFixed(0);
             setOcrStatus(`Scanning: ${progress}%`);
-          } else if (m.status === 'loading tesseract core') {
-            setOcrStatus('Loading scanner engine...');
-          } else if (m.status === 'loading language model') {
-            setOcrStatus('Loading language model...');
+          } else if (m.status) {
+            setOcrStatus(m.status.charAt(0).toUpperCase() + m.status.slice(1));
           }
         },
         errorHandler: (err) => {
@@ -563,6 +564,7 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
               </FormControl>
               {imagePreview && (
                 <div className="relative mt-4 w-full h-48 rounded-md overflow-hidden border">
+                  {/* This is the Next.js Image component for display */}
                   <Image
                     src={imagePreview}
                     alt="Image preview"
