@@ -44,7 +44,7 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      sender: '',
+      sender: 'Anonymous',
       recipient: '',
       message: '',
       frame: 'heart',
@@ -158,7 +158,7 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
                   <FormItem>
                     <FormLabel>Your Name / Alias</FormLabel>
                     <FormControl>
-                      <Input placeholder="Anonymous Binary Lover" {...field} />
+                      <Input placeholder="Anonymous" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
