@@ -135,15 +135,21 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
     }
     
     setOcrLoading(true);
-    setOcrStatus('Initializing...');
+    setOcrStatus('Starting scanner...');
 
     const worker = await createWorker({
       logger: m => {
-        if (m.status === 'recognizing text') {
+        if (m.status === 'loading tesseract core') {
+          setOcrStatus('Loading scanner engine...');
+        } else if (m.status === 'initializing tesseract') {
+          setOcrStatus('Initializing engine...');
+        } else if (m.status === 'loading language model') {
+          setOcrStatus(`Loading language model...`);
+        } else if (m.status === 'initializing language model') {
+          setOcrStatus('Preparing language model...');
+        } else if (m.status === 'recognizing text') {
           const progress = (m.progress * 100).toFixed(0);
-          setOcrStatus(`Recognizing: ${progress}%`);
-        } else if (m.status.includes('loading')) {
-           setOcrStatus('Loading model...');
+          setOcrStatus(`Scanning: ${progress}%`);
         }
       },
     });
