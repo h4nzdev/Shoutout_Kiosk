@@ -30,11 +30,11 @@ const MainShoutoutCard = ({ shoutout, frame }: { shoutout: Shoutout; frame: Shou
         <div className="w-full md:w-1/2 flex flex-col gap-6">
           <div className="space-y-1">
             <p className="text-primary/70 font-mono text-sm uppercase tracking-tighter">&lt;Sender&gt;</p>
-            <p className="text-foreground text-2xl font-bold font-mono">{shoutout.sender}</p>
+            <p className="text-foreground text-2xl font-bold font-mono">{shoutout.senderName}</p>
           </div>
           <div className="space-y-1">
             <p className="text-primary/70 font-mono text-sm uppercase tracking-tighter">&lt;Recipient&gt;</p>
-            <p className="text-primary text-3xl font-bold font-mono">To: {shoutout.recipient}</p>
+            <p className="text-primary text-3xl font-bold font-mono">To: {shoutout.recipientName}</p>
           </div>
           <div className="mt-4 p-4 border-l-4 border-primary bg-primary/10">
             <p className="text-foreground text-3xl font-mono leading-snug italic">

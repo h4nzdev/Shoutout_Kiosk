@@ -151,6 +151,9 @@ export function useShoutouts() {
       try {
         console.log("🗑️ Deleting shoutout:", shoutoutId);
 
+        // Remove from local state first (optimistic update)
+        setShoutouts((prev) => prev.filter((s) => s.id !== shoutoutId));
+
         const { error } = await supabase
           .from("shoutouts")
           .delete()
@@ -158,11 +161,10 @@ export function useShoutouts() {
 
         if (error) {
           console.error("❌ Delete error:", error);
+          // Refetch to restore state if deletion failed
+          await fetchShoutouts();
           throw error;
         }
-
-        // Remove from local state
-        setShoutouts((prev) => prev.filter((s) => s.id !== shoutoutId));
 
         toast({
           title: "Shoutout Deleted",
@@ -173,13 +175,13 @@ export function useShoutouts() {
       } catch (error: any) {
         console.error("❌ Error deleting shoutout:", error);
         toast({
-          title: "Error",
-          description: "Failed to delete shoutout.",
+          title: "Delete Failed",
+          description: error.message || "Failed to delete shoutout. Please try again.",
           variant: "destructive",
         });
       }
     },
-    [toast],
+    [toast, fetchShoutouts],
   );
 
   // Initial load and real-time subscription
