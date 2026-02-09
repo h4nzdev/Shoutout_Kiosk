@@ -13,20 +13,32 @@ import { frames } from '@/lib/frames';
 import { Shoutout } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import NextImage from 'next/image';
-import { Camera, Heart, Code, CircuitBoard, Send, X, WandSparkles } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { stylizeMessage } from '@/ai/flows/stylize-message-flow';
-import { createWorker } from 'tesseract.js';
+import {
+  Camera,
+  Heart,
+  Code,
+  CircuitBoard,
+  Send,
+  X,
+  WandSparkles,
+  Loader2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { stylizeMessage } from "@/ai/flows/stylize-message-flow";
+import { createWorker } from "tesseract.js";
 
 const formSchema = z.object({
-  sender: z.string().min(1, 'Sender name is required.'),
-  recipient: z.string().min(1, 'Recipient name is required.'),
-  message: z.string().min(1, 'Message cannot be empty.').max(500, 'Message is too long.'),
-  frame: z.string().min(1, 'Please select a frame.'),
+  sender: z.string().min(1, "Sender name is required."),
+  recipient: z.string().min(1, "Recipient name is required."),
+  message: z
+    .string()
+    .min(1, "Message cannot be empty.")
+    .max(500, "Message is too long."),
+  frame: z.string().min(1, "Please select a frame."),
 });
 
 type ShoutoutFormProps = {
-  onAddShoutout: (shoutout: Omit<Shoutout, 'id' | 'createdAt'>) => void;
+  onAddShoutout: (shoutout: Omit<Shoutout, "id" | "createdAt">) => void;
 };
 
 const frameIcons: { [key: string]: React.ReactNode } = {
@@ -41,17 +53,18 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiLoading, setAiLoading] = useState<string | null>(null);
   const [ocrLoading, setOcrLoading] = useState(false);
-  const [ocrStatus, setOcrStatus] = useState('');
+  const [ocrStatus, setOcrStatus] = useState("");
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const ocrInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      sender: 'Anonymous',
-      recipient: '',
-      message: '',
-      frame: 'heart',
+      sender: "Anonymous",
+      recipient: "",
+      message: "",
+      frame: "heart",
     },
   });
 
@@ -62,20 +75,28 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
       setOcrStatus(customEvent.detail);
     };
 
-    window.addEventListener('ocr-progress', handleOcrProgress);
+    window.addEventListener("ocr-progress", handleOcrProgress);
+
+    // Check localStorage on component mount
+    const submitted = localStorage.getItem("shoutoutFormSubmitted");
+    if (submitted === "true") {
+      setHasSubmitted(true);
+    }
+
     return () => {
-      window.removeEventListener('ocr-progress', handleOcrProgress);
+      window.removeEventListener("ocr-progress", handleOcrProgress);
     };
   }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 1 * 1024 * 1024) { // 1MB limit for shoutout image
+      if (file.size > 1 * 1024 * 1024) {
+        // 1MB limit for shoutout image
         toast({
-          title: 'Image too large',
-          description: 'Please upload an image smaller than 1MB.',
-          variant: 'destructive',
+          title: "Image too large",
+          description: "Please upload an image smaller than 1MB.",
+          variant: "destructive",
         });
         return;
       }
@@ -91,17 +112,20 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
   const clearImage = () => {
     setImagePreview(null);
     setImageBase64(null);
-    const fileInput = document.getElementById('shoutout-image') as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
+    const fileInput = document.getElementById(
+      "shoutout-image",
+    ) as HTMLInputElement;
+    if (fileInput) fileInput.value = "";
   };
 
-  const handleStylize = async (style: 'poetic' | 'witty') => {
-    const currentMessage = form.getValues('message');
+  const handleStylize = async (style: "poetic" | "witty") => {
+    const currentMessage = form.getValues("message");
     if (!currentMessage) {
       toast({
-        title: 'Enter a message first!',
-        description: 'You need to write a message before the AI can stylize it.',
-        variant: 'destructive',
+        title: "Enter a message first!",
+        description:
+          "You need to write a message before the AI can stylize it.",
+        variant: "destructive",
       });
       return;
     }
@@ -110,20 +134,22 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
     try {
       const result = await stylizeMessage({ message: currentMessage, style });
       if (result?.stylizedMessage) {
-        form.setValue('message', result.stylizedMessage, { shouldValidate: true });
+        form.setValue("message", result.stylizedMessage, {
+          shouldValidate: true,
+        });
         toast({
-          title: 'Message Stylized!',
+          title: "Message Stylized!",
           description: `Your message has been made more ${style}.`,
         });
       } else {
-        throw new Error('No message returned');
+        throw new Error("No message returned");
       }
     } catch (error) {
-      console.error('Failed to stylize message:', error);
+      console.error("Failed to stylize message:", error);
       toast({
-        title: 'AI Error',
-        description: 'The AI failed to stylize your message. Please try again.',
-        variant: 'destructive',
+        title: "AI Error",
+        description: "The AI failed to stylize your message. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setAiLoading(null);
@@ -134,77 +160,85 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
     ocrInputRef.current?.click();
   };
 
-  const handleOcrImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOcrImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit for Tesseract
+    if (file.size > 5 * 1024 * 1024) {
+      // 5MB limit for Tesseract
       toast({
-        title: 'Image too large for scanning',
-        description: 'Please use an image smaller than 5MB.',
-        variant: 'destructive',
+        title: "Image too large for scanning",
+        description: "Please use an image smaller than 5MB.",
+        variant: "destructive",
       });
       return;
     }
 
     setOcrLoading(true);
-    setOcrStatus('Initializing scanner...');
+    setOcrStatus("Initializing scanner...");
 
     const worker = await createWorker({
       // The logger function now dispatches a custom event instead of
       // directly calling the state setter. This avoids the DataCloneError.
       logger: (m) => {
-        let statusText = '';
-        if (m.status === 'recognizing text') {
+        let statusText = "";
+        if (m.status === "recognizing text") {
           statusText = `Scanning: ${Math.round(m.progress * 100)}%`;
-        } else if (m.status === 'loading tesseract core') {
-          statusText = 'Loading engine...';
-        } else if (m.status === 'loading language model') {
-          statusText = 'Loading language...';
+        } else if (m.status === "loading tesseract core") {
+          statusText = "Loading engine...";
+        } else if (m.status === "loading language model") {
+          statusText = "Loading language...";
         }
         if (statusText) {
-          window.dispatchEvent(new CustomEvent('ocr-progress', { detail: statusText }));
+          window.dispatchEvent(
+            new CustomEvent("ocr-progress", { detail: statusText }),
+          );
         }
       },
     });
 
     try {
-      await worker.loadLanguage('eng');
-      await worker.initialize('eng');
-      const { data: { text } } = await worker.recognize(file);
+      await worker.loadLanguage("eng");
+      await worker.initialize("eng");
+      const {
+        data: { text },
+      } = await worker.recognize(file);
       await worker.terminate();
 
       if (text) {
-        const currentMessage = form.getValues('message');
-        const separator = currentMessage && !currentMessage.endsWith('\n') ? '\n' : '';
+        const currentMessage = form.getValues("message");
+        const separator =
+          currentMessage && !currentMessage.endsWith("\n") ? "\n" : "";
         const newMessage = currentMessage
           ? `${currentMessage}${separator}${text}`
           : text;
-        
-        form.setValue('message', newMessage, { shouldValidate: true });
+
+        form.setValue("message", newMessage, { shouldValidate: true });
 
         toast({
-          title: 'Text Scanned Successfully!',
+          title: "Text Scanned Successfully!",
           description: `Text from your note has been added.`,
         });
       } else {
         toast({
-          title: 'No Text Found',
-          description: 'Could not find any readable text in the image.',
-          variant: 'destructive',
+          title: "No Text Found",
+          description: "Could not find any readable text in the image.",
+          variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('OCR Error:', error);
+      console.error("OCR Error:", error);
       toast({
-        title: 'Scan Error',
-        description: 'Failed to scan image. Please try again.',
-        variant: 'destructive',
+        title: "Scan Error",
+        description: "Failed to scan image. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setOcrLoading(false);
-      setOcrStatus('');
-      if (e.target) e.target.value = '';
+      setOcrStatus("");
+      if (e.target) e.target.value = "";
     }
   };
 
@@ -219,19 +253,23 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
         frame: values.frame,
       });
 
+      // Save to localStorage to prevent multiple submissions
+      localStorage.setItem("shoutoutFormSubmitted", "true");
+      setHasSubmitted(true);
+
       toast({
-        title: 'Shoutout Sent!',
-        description: 'Your message is now live on the feed.',
+        title: "Shoutout Sent!",
+        description: "Your message is now live on the feed.",
       });
 
       form.reset();
       clearImage();
     } catch (error) {
-      console.error('Submit error:', error);
+      console.error("Submit error:", error);
       toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -241,187 +279,186 @@ export default function ShoutoutForm({ onAddShoutout }: ShoutoutFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-2xl">Create a Shoutout</CardTitle>
+        <CardTitle className="font-headline text-2xl">
+          {hasSubmitted ? "Shoutout Already Sent" : "Create a Shoutout"}
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-4">
+        {hasSubmitted ? (
+          <div className="text-center py-8">
+            <p className="text-lg text-muted-foreground mb-4">
+              Thanks for your shoutout! You can only send one message per
+              session.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Check the feed below to see your message displayed.
+            </p>
+          </div>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="sender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Your Name / Alias</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Anonymous" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="recipient"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>To</FormLabel>
+                      <FormControl>
+                        <Input placeholder="My fellow Coder" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
-                name="sender"
+                name="message"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Your Name / Alias</FormLabel>
+                    <div className="flex justify-between items-center">
+                      <FormLabel>Your Message</FormLabel>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleOcrScan}
+                        disabled
+                        className="text-xs"
+                      >
+                        {ocrLoading ? ocrStatus : "Scan from Note"}
+                        <Camera className="ml-2 h-3 w-3" />
+                      </Button>
+                    </div>
                     <FormControl>
-                      <Input placeholder="Anonymous" {...field} />
+                      <Textarea
+                        placeholder="Type your Valentine's message here, or scan it from a note!"
+                        className="min-h-[120px]"
+                        {...field}
+                      />
                     </FormControl>
+                    <div className="flex items-center justify-end gap-2 pt-1"></div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="recipient"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>To</FormLabel>
-                    <FormControl>
-                      <Input placeholder="My fellow Coder" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
 
-            <FormField
-              control={form.control}
-              name="message"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex justify-between items-center">
-                    <FormLabel>Your Message</FormLabel>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleOcrScan}
-                      disabled={ocrLoading}
-                      className="text-xs"
-                    >
-                      {ocrLoading ? ocrStatus : 'Scan from Note'}
-                      <Camera className="ml-2 h-3 w-3" />
-                    </Button>
-                  </div>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Type your Valentine's message here, or scan it from a note!"
-                      className="min-h-[120px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <div className="flex items-center justify-end gap-2 pt-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleStylize('poetic')}
-                      disabled={!!aiLoading || ocrLoading}
-                      className="text-xs"
-                    >
-                      {aiLoading === 'poetic' ? 'Stylizing...' : 'Make it Poetic'}
-                      <WandSparkles className="ml-2 h-3 w-3" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleStylize('witty')}
-                      disabled={!!aiLoading || ocrLoading}
-                      className="text-xs"
-                    >
-                      {aiLoading === 'witty' ? 'Stylizing...' : 'Make it Witty'}
-                      <WandSparkles className="ml-2 h-3 w-3" />
-                    </Button>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormControl>
-              <Input
-                ref={ocrInputRef}
-                id="ocr-image-input"
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleOcrImageChange}
-                className="hidden"
-              />
-            </FormControl>
-
-            <FormItem>
-              <FormLabel>Upload Image (Optional)</FormLabel>
               <FormControl>
                 <Input
-                  id="shoutout-image"
+                  ref={ocrInputRef}
+                  id="ocr-image-input"
                   type="file"
                   accept="image/*"
-                  onChange={handleImageChange}
-                  className="file:text-primary"
+                  capture="environment"
+                  onChange={handleOcrImageChange}
+                  className="hidden"
                 />
               </FormControl>
-              {imagePreview && (
-                <div className="relative mt-4 w-full h-48 rounded-md overflow-hidden border">
-                  <NextImage
-                    src={imagePreview}
-                    alt="Image preview"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+
+              <FormItem>
+                <FormLabel>Upload Image (Optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    id="shoutout-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="file:text-primary"
+                    disabled
                   />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2 h-8 w-8 rounded-full"
-                    onClick={clearImage}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </FormItem>
-
-            <FormField
-              control={form.control}
-              name="frame"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Choose a Frame</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="grid grid-cols-3 gap-4"
+                </FormControl>
+                {imagePreview && (
+                  <div className="relative mt-4 w-full h-48 rounded-md overflow-hidden border">
+                    <NextImage
+                      src={imagePreview}
+                      alt="Image preview"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 rounded-full"
+                      onClick={clearImage}
                     >
-                      {frames.map((frame) => (
-                        <FormItem key={frame.id}>
-                          <FormControl>
-                            <RadioGroupItem value={frame.id} className="sr-only" />
-                          </FormControl>
-                          <FormLabel
-                            className={cn(
-                              'frame-radio',
-                              frame.className,
-                              'flex flex-col items-center justify-center p-4 rounded-lg border-2 border-transparent hover:border-primary cursor-pointer transition-all',
-                              field.value === frame.id && 'border-primary bg-primary/5'
-                            )}
-                          >
-                            {frameIcons[frame.id]}
-                            <span className="mt-2 text-sm font-medium">{frame.name}</span>
-                          </FormLabel>
-                        </FormItem>
-                      ))}
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </FormItem>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isSubmitting || ocrLoading}
-            >
-              {isSubmitting ? 'Sending...' : 'Send Shoutout'}
-              <Send className="ml-2 h-4 w-4" />
-            </Button>
-          </form>
-        </Form>
+              <FormField
+                control={form.control}
+                name="frame"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Choose a Frame</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="grid grid-cols-3 gap-4"
+                        disabled
+                      >
+                        {frames.map((frame) => (
+                          <FormItem key={frame.id}>
+                            <FormControl>
+                              <RadioGroupItem
+                                value={frame.id}
+                                className="sr-only"
+                              />
+                            </FormControl>
+                            <FormLabel
+                              className={cn(
+                                "frame-radio",
+                                frame.className,
+                                "flex flex-col items-center justify-center p-4 rounded-lg border-2 border-transparent hover:border-primary cursor-pointer transition-all",
+                                field.value === frame.id &&
+                                  "border-primary bg-primary/5",
+                              )}
+                            >
+                              {frameIcons[frame.id]}
+                              <span className="mt-2 text-sm font-medium">
+                                {frame.name}
+                              </span>
+                            </FormLabel>
+                          </FormItem>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Sending..." : "Send Shoutout"}
+                {isSubmitting ? (
+                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="ml-2 h-4 w-4" />
+                )}
+              </Button>
+            </form>
+          </Form>
+        )}
       </CardContent>
     </Card>
   );

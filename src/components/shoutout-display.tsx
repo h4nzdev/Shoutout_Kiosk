@@ -4,7 +4,7 @@ import { Shoutout, ShoutoutFrame } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { frames } from '@/lib/frames';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
 import FloatingHearts from './FloatingHearts';
 import SparkleRain from './SparkleRain';
 import ReactionAnimation from './ReactionAnimation';
@@ -56,6 +56,7 @@ const MainShoutoutCard = ({ shoutout, frame }: { shoutout: Shoutout; frame: Shou
 export default function ShoutoutDisplay({ shoutouts, initialized }: ShoutoutDisplayProps) {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [reactionTrigger, setReactionTrigger] = React.useState<{ type: ReactionType; count: number } | null>(null);
+  const [isPaused, setIsPaused] = React.useState(false);
   const sortedShoutouts = shoutouts.slice().sort((a, b) => b.createdAt - a.createdAt);
 
   const handleNext = React.useCallback(() => {
@@ -89,6 +90,17 @@ export default function ShoutoutDisplay({ shoutouts, initialized }: ShoutoutDisp
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [handleNext, handlePrev]);
+
+  // Auto-slide every 10 seconds when not paused
+  React.useEffect(() => {
+    if (isPaused) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % (sortedShoutouts.length || 1));
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [isPaused, sortedShoutouts.length]);
 
   if (!initialized) {
     return (
@@ -153,8 +165,15 @@ export default function ShoutoutDisplay({ shoutouts, initialized }: ShoutoutDisp
         
       {sortedShoutouts.length > 0 && (
         <div className="fixed bottom-6 inset-x-0 flex justify-center items-center z-10">
-            <div className="px-4 py-1 rounded-full bg-card/50 text-foreground font-mono text-sm backdrop-blur-sm">
-                {currentIndex + 1} / {sortedShoutouts.length}
+            <div className="px-4 py-1 rounded-full bg-card/50 text-foreground font-mono text-sm backdrop-blur-sm flex items-center gap-4">
+              <span>{currentIndex + 1} / {sortedShoutouts.length}</span>
+              <button
+                onClick={() => setIsPaused(!isPaused)}
+                className="p-1.5 rounded-full hover:bg-primary/20 transition-colors"
+                title={isPaused ? 'Play' : 'Pause'}
+              >
+                {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+              </button>
             </div>
         </div>
       )}

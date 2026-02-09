@@ -223,6 +223,15 @@ export function useShoutouts() {
     };
   }, [fetchShoutouts]);
 
+  // Auto-refresh shoutouts every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchShoutouts();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [fetchShoutouts]);
+
   return {
     shoutouts,
     addShoutout,
